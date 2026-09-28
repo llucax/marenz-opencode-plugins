@@ -160,17 +160,21 @@ rather than being exported from the plugin for the tests to reach.
 
 ## Deploy
 
-The plugins are symlinked into OpenCode's plugin directory:
+Add each plugin to the `plugin` array in OpenCode's config
+(`~/.config/opencode/opencode.jsonc`), with a path to this clone, absolute or
+relative to the config file:
 
-```sh
-ln -sfn "$PWD/src/spawn-session.ts" ~/.config/opencode/plugins/spawn-session.ts
-ln -sfn "$PWD/src/beep.js"          ~/.config/opencode/plugins/beep.js
+```jsonc
+"plugin": [
+    "/path/to/opencode-plugins/src/spawn-session.ts",
+    "/path/to/opencode-plugins/src/beep.js"
+]
 ```
 
 Two caveats:
 
 - `npm install` must have been run here. Module resolution follows the
-  symlink's *real* path, so `@opencode-ai/plugin` is resolved from this repo's
+  entry's path, so `@opencode-ai/plugin` is resolved from this repo's
   `node_modules`, not from `~/.config/opencode`.
 - Plugins are loaded at server start. An edit only takes effect after OpenCode
   restarts.
@@ -179,9 +183,8 @@ To verify a change loads without disturbing a running server, start a throwaway
 one against a scratch config and ask it for its tool IDs:
 
 ```sh
-mkdir -p /tmp/oc/opencode/plugins /tmp/oc/work
-ln -s "$PWD/src/spawn-session.ts" /tmp/oc/opencode/plugins/spawn-session.ts
-echo '{}' > /tmp/oc/opencode/opencode.json
+mkdir -p /tmp/oc/opencode /tmp/oc/work
+echo "{\"plugin\": [\"$PWD/src/spawn-session.ts\"]}" > /tmp/oc/opencode/opencode.json
 (cd /tmp/oc/work && XDG_CONFIG_HOME=/tmp/oc opencode serve --port 8899 --hostname 127.0.0.1 &)
 curl -s 'http://127.0.0.1:8899/experimental/tool/ids?directory=/tmp/oc/work'
 ```
